@@ -1,0 +1,291 @@
+﻿@model Abp.Application.Services.Dto.PagedResultDto<MyPhoneBook.Application.PhoneBooks.Dtos.PersonListDto>
+@using Abp.Authorization.Users
+@using MyPhoneBook
+@using MyPhoneBook.Web.Startup
+
+@{
+    ViewBag.CurrentPageName = PageNames.Persons; // The menu item will be active for this page.
+}
+@section scripts
+{
+    <environment names="Development">
+        <script src="~/view-resources/Views/Persons/Index.js" asp-append-version="true"></script>
+    </environment>
+
+
+}
+<div class="row clearfix">
+    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+        <div class="card">
+            <div class="header">
+                <h2>
+                    @L("Persons")
+                </h2>
+                <ul class="header-dropdown m-r--5">
+                    <li class="dropdown">
+                        <a href="javascript:void(0);" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                            <i class="material-icons">more_vert</i>
+                        </a>
+                        <ul class="dropdown-menu pull-right">
+                            <li><a id="RefreshButton" href="javascript:void(0);" class="waves-effect waves-block"><i class="material-icons">refresh</i>@L("Refresh")</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="body table-responsive">
+                <table class="table">
+                    @foreach (var person in Model.Items)
+                    {
+                        <tr>
+                            <th> @L("Name") </th>
+                            <th> @L("EmailAddress") </th>
+                            <th> @L("Address") </th>
+                            <th> @L("CreationTime") </th>
+                            <th> @L("Actions")</th>
+
+                        </tr>
+                        <tr>
+                            <td>@person.Name</td>
+                            <td>@person.EmailAddress</td>
+                            <td>@person.Address</td>
+                            <td>@person.CreationTime</td>
+                            <td class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                                    <i class="material-icons">menu</i>
+                                </a>
+                                <ul class="dropdown-menu pull-right">
+                                    <li><a href="#" class="waves-effect waves-block edit-person" data-person-id="@person.Id" data-toggle="modal" data-target="#PersonEditModal"><i class="material-icons">edit</i>编辑</a></li>
+                                    <li><a href="#" class="waves-effect waves-block delete-person" data-person-id="@person.Id" data-person-name="@person.Name"><i class="material-icons">delete_sweep</i>删除</a></li>
+                                </ul>
+                            </td>
+
+
+                        <tr>
+                            <th>电话类型</th>
+                            <th>电话号码</th>
+                            <th><button type="button" class="btn_add_phonenumber "  data-person-id="@person.Id" data-toggle="modal" data-target="#PhoneNumberAddModal">+</button></th>
+
+                        </tr>
+
+
+                        @foreach (var item in person.PhoneNumbers)
+                        {
+                            <tr>
+                                <td>@item.Type.ToString()</td>
+                                <td>@item.Number</td>
+
+                            </tr>
+                        }
+
+                        </tr>
+
+                    }
+
+                </table>
+                <button type="button" class="btn btn-primary btn-circle waves-effect waves-circle waves-float pull-right" data-toggle="modal" data-target="#PersonCreateModal">
+                    <i class="material-icons">add</i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="PersonCreateModal" tabindex="-1" role="dialog" aria-labelledby="PersonCreateModalLabel" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    <span>@L("CreatePerson")</span>
+                </h4>
+            </div>
+            <div class="modal-body">
+                <form name="personCreateForm" role="form" novalidate class="form-validation">
+
+                    <div class="tab-content">
+                        <div role="tabpanel" class="tab-pane animated fadeIn active" id="create-person-details">
+                            <div class="row clearfix" style="margin-top:10px;">
+                                <div class="col-sm-12">
+                                    <div class="form-group form-float">
+                                        <div class="form-line">
+                                            <input type="hidden" name="Id" />
+                                            <input class="form-control" type="text" name="Name" required maxlength="@MyPhoneBookConsts.MaxNameLength" minlength="2">
+                                            <label class="form-label">@L("Name")</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row clearfix" style="margin-top:10px;">
+                                <div class="col-sm-12">
+                                    <div class="form-group form-float">
+                                        <div class="form-line">
+                                            <input class="form-control" type="email" name="EmailAddress" required maxlength="@MyPhoneBookConsts.MaxEmailLength" minlength="2">
+                                            <label class="form-label">@L("EmailAddress")</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+
+
+
+                            <div class="row clearfix" style="margin-top:10px;">
+                                <div class="col-sm-12">
+                                    <div class="form-group form-float">
+                                        <div class="form-line">
+                                            <input class="form-control" type="text" name="PhoneNumber" required maxlength="@MyPhoneBookConsts.MaxPhoneNumberLength" minlength="2">
+                                            <label class="form-label">@L("PhoneNumber")</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row clearfix" style="margin-top:10px;">
+                                <div class="col-sm-12">
+                                    <div class="form-group form-float">
+                                        <label>@L("PhoneNumberType")</label>
+                                        <select name="PhoneNumberType" class="form-control selectpicker ">
+                                            <option value="1">移动电话</option>
+                                            <option value="2">家庭</option>
+                                            <option value="3">公司</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row clearfix" style="margin-top:10px;">
+                                <div class="col-sm-12">
+                                    <div class="form-group form-float">
+                                        <div class="form-line">
+                                            <input class="form-control" type="text" name="Address" maxlength="@MyPhoneBookConsts.MaxAddressLength">
+                                            <label class="form-label">@L("Address")</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">@L("Cancel")</button>
+                        <button type="submit" class="btn btn-primary waves-effect">@L("Save")</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="PhoneNumberAddModal" tabindex="-1" role="dialog" aria-labelledby="PhoneNumberAddModalLabel" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    <span>添加电话号码</span>
+                </h4>
+            </div>
+            <div class="modal-body">
+                <form name="phoneNumberAddForm" role="form" novalidate class="form-validation">
+
+                    <div class="tab-content">
+                        <div role="tabpanel" class="tab-pane animated fadeIn active" id="add-phoneNumber-details">
+
+                            <div class="row clearfix" style="margin-top:10px;">
+                                <div class="col-sm-12">
+                                    <div class="form-group form-float">
+                                        <label>@L("PhoneNumberType")</label>
+                                        <select name="PhoneNumberType" class="form-control selectpicker ">
+                                            <option value="1">移动电话</option>
+                                            <option value="2">家庭</option>
+                                            <option value="3">公司</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row clearfix" style="margin-top:10px;">
+                                <div class="col-sm-12">
+                                    <div class="form-group form-float">
+                                        <div class="form-line">
+                                            <input class="form-control" type="text" name="PhoneNumber" required maxlength="@MyPhoneBookConsts.MaxPhoneNumberLength" minlength="2">
+                                            <label class="form-label">@L("PhoneNumber")</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">@L("Cancel")</button>
+                        <button type="submit" class="btn btn-primary waves-effect">@L("Save")</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="PersonEditModal" tabindex="-1" role="dialog" aria-labelledby="PersonEditModalLabel" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    <span>编辑联系人</span>
+                </h4>
+            </div>
+            <div class="modal-body">
+                <form name="personEditForm" role="form" novalidate class="form-validation">
+
+                    <div class="tab-content">
+                        <div role="tabpanel" class="tab-pane animated fadeIn active" id="edit-person-details">
+                            <div class="row clearfix" style="margin-top:10px;">
+                                <div class="col-sm-12">
+                                    <div class="form-group form-float">
+                                        <div class="form-line">
+                                            <input type="hidden" name="Id" />
+                                            <input class="form-control" type="text" name="Name" required maxlength="@MyPhoneBookConsts.MaxNameLength" minlength="2">
+                                            <label class="form-label">@L("Name")</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row clearfix" style="margin-top:10px;">
+                                <div class="col-sm-12">
+                                    <div class="form-group form-float">
+                                        <div class="form-line">
+                                            <input class="form-control" type="email" name="EmailAddress" required maxlength="@MyPhoneBookConsts.MaxEmailLength" minlength="2">
+                                            <label class="form-label">@L("EmailAddress")</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row clearfix" style="margin-top:10px;">
+                                <div class="col-sm-12">
+                                    <div class="form-group form-float">
+                                        <div class="form-line">
+                                            <input class="form-control" type="text" name="Address" maxlength="@MyPhoneBookConsts.MaxAddressLength">
+                                            <label class="form-label">@L("Address")</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">@L("Cancel")</button>
+                        <button type="submit" class="btn btn-primary waves-effect">@L("Save")</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
